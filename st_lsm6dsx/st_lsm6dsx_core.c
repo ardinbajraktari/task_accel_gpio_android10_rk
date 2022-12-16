@@ -111,7 +111,7 @@ struct st_lsm6dsx_odr_table_entry {
 };
 
 
-struct rk3399_gpio{
+struct rk3399_gpio {
 	int led1_gpio;
 	int led2_gpio;
 	int led3_gpio;
@@ -496,24 +496,24 @@ int st_lsm6dsx_sensor_disable(struct st_lsm6dsx_sensor *sensor)
 
 int thread_fn(void* param)
 {
-	struct st_lsm6dsx_sensor* sensor1 = (struct st_lsm6dsx_sensor*) param;
-	struct st_lsm6dsx_hw *hw = sensor1->hw;
-	struct regmap *regmap1 = hw->regmap;
+	struct st_lsm6dsx_sensor*  sensor_lsm6dsx = (struct st_lsm6dsx_sensor*) param;
+	struct st_lsm6dsx_hw *hw =  sensor_lsm6dsx->hw;
+	struct regmap *regmap_hw = hw->regmap;
 	__le16 data;
 	int err, delay;
-	int val=0;
-	u8 addr_x=40;
-	u8 addr_y=42;
+	int val = 0;
+	u8 addr_x = 40;
+	u8 addr_y = 42;
 	printk(KERN_INFO "Thread function started.");
 	while(true) {
-		err = st_lsm6dsx_sensor_enable(sensor1);
+		err = st_lsm6dsx_sensor_enable( sensor_lsm6dsx);
 		if (err < 0)
 			return err;
 
-		delay = 1000000 / sensor1->odr;
+		delay = 1000000 /  sensor_lsm6dsx->odr;
 		usleep_range(delay, 2 * delay);
 
-		err = regmap_bulk_read(regmap1, addr_x, &data, sizeof(data));
+		err = regmap_bulk_read(regmap_hw, addr_x, &data, sizeof(data));
 		if (err < 0)
 			return err;
 
@@ -535,7 +535,7 @@ int thread_fn(void* param)
 			gpio_set_value(dev_board_leds->led3_gpio, false);
 		}
 
-		err = regmap_bulk_read(regmap1, addr_y, &data, sizeof(data));
+		err = regmap_bulk_read(regmap_hw, addr_y, &data, sizeof(data));
 		if (err < 0)
 			return err;	
 		
@@ -558,7 +558,7 @@ int thread_fn(void* param)
 			gpio_set_value(dev_board_leds->led1_gpio, false);
 		}
 
-		st_lsm6dsx_sensor_disable(sensor1);
+		st_lsm6dsx_sensor_disable( sensor_lsm6dsx);
 
 		if (err < 0)
 		{
@@ -613,26 +613,22 @@ static int st_lsm6dsx_read_raw(struct iio_dev *iio_dev,
 		ret = iio_device_claim_direct_mode(iio_dev);
 		if (ret)
 			break;
-		ret = st_lsm6dsx_read_oneshot(sensor, 40, val);
+		ret = st_lsm6dsx_read_oneshot(sensor, ch->address, val);
 		iio_device_release_direct_mode(iio_dev);
-		printk(KERN_INFO "read_raw X val = %d",*val);
+		printk(KERN_INFO "read_raw val = %d",*val);
 		printk(KERN_INFO "read_raw ch->address: %lu",ch->address);
-
 		break;
 	case IIO_CHAN_INFO_SAMP_FREQ:
 		*val = sensor->odr;
 		ret = IIO_VAL_INT;
-		printk(KERN_INFO "read_raw 3");
 		break;
 	case IIO_CHAN_INFO_SCALE:
 		*val = 0;
 		*val2 = sensor->gain;
 		ret = IIO_VAL_INT_PLUS_MICRO;
-		printk(KERN_INFO "read_raw 4");
 		break;
 	default:
 		ret = -EINVAL;
-		printk(KERN_INFO "read_raw 5");
 		break;
 	}
 
@@ -778,7 +774,6 @@ static int st_lsm6dsx_of_get_drdy_pin(struct st_lsm6dsx_hw *hw, int *drdy_pin)
 
 	if (!np)
 	{
-		printk(KERN_INFO "Error in function st_lsm6dsx_of_get_drdy_pin.");
 		return -EINVAL;
 	}
 
@@ -1000,8 +995,6 @@ static int lsm6dsx_parse_dts(struct device *dev,struct rk3399_gpio *dev_board_le
 		return -1;
 	}
 
-
-
 	dev_board_leds->led3_gpio=of_get_named_gpio(np,"gpio,led3",0);
 	if(dev_board_leds->led3_gpio < 0){
 		printk("GPIO not found.int GPIO not used\n");
@@ -1022,8 +1015,6 @@ static int lsm6dsx_parse_dts(struct device *dev,struct rk3399_gpio *dev_board_le
 		return -1;
 	}
 
-	
-
 	dev_board_leds->led4_gpio=of_get_named_gpio(np,"gpio,led4",0);
 	if(dev_board_leds->led4_gpio < 0){
 		printk("GPIO not found.int GPIO not used\n");
@@ -1043,7 +1034,6 @@ static int lsm6dsx_parse_dts(struct device *dev,struct rk3399_gpio *dev_board_le
 		printk("failed to direction_outputt GPIO %d <hello,en-gpio>\n",dev_board_leds->led4_gpio);
 		return -1;
 	}
-
 
 	printk(KERN_INFO "lsm6dsx_parse_dts passed gpio_direction_output");
 
