@@ -75,7 +75,6 @@ static int st_lsm6dsx_get_decimator_val(u8 val)
 {
 	const int max_size = ARRAY_SIZE(st_lsm6dsx_decimator_table);
 	int i;
-	printk(KERN_INFO "Ardin: get_decimator_val");
 
 	for (i = 0; i < max_size; i++)
 		if (st_lsm6dsx_decimator_table[i].decimator == val)
@@ -91,7 +90,6 @@ static void st_lsm6dsx_get_max_min_odr(struct st_lsm6dsx_hw *hw,
 	int i;
 
 	*max_odr = 0, *min_odr = ~0;
-	printk(KERN_INFO "Ardin: get_max_min_odr");
 	for (i = 0; i < ST_LSM6DSX_ID_MAX; i++) {
 		sensor = iio_priv(hw->iio_devs[i]);
 
@@ -110,7 +108,6 @@ static int st_lsm6dsx_update_decimators(struct st_lsm6dsx_hw *hw)
 	struct st_lsm6dsx_sensor *sensor;
 	int err = 0, i;
 	u8 data;
-	printk(KERN_INFO "Ardin: update_decimators");
 
 	st_lsm6dsx_get_max_min_odr(hw, &max_odr, &min_odr);
 
@@ -164,7 +161,6 @@ int st_lsm6dsx_set_fifo_mode(struct st_lsm6dsx_hw *hw,
 			     enum st_lsm6dsx_fifo_mode fifo_mode)
 {
 	int err;
-	printk(KERN_INFO "Ardin: set_fifo_mode");
 
 	err = regmap_update_bits(hw->regmap, ST_LSM6DSX_REG_FIFO_MODE_ADDR,
 				 ST_LSM6DSX_FIFO_MODE_MASK,
@@ -184,7 +180,6 @@ static int st_lsm6dsx_set_fifo_odr(struct st_lsm6dsx_sensor *sensor,
 	struct st_lsm6dsx_hw *hw = sensor->hw;
 	u8 data;
 
-	printk(KERN_INFO "Ardin: set_fifo_odr");
 	data = hw->enable_mask ? ST_LSM6DSX_MAX_FIFO_ODR_VAL : 0;
 	return regmap_update_bits(hw->regmap, ST_LSM6DSX_REG_FIFO_MODE_ADDR,
 				 ST_LSM6DSX_FIFO_ODR_MASK,
@@ -199,7 +194,6 @@ int st_lsm6dsx_update_watermark(struct st_lsm6dsx_sensor *sensor, u16 watermark)
 	int i, err, data;
 	__le16 wdata;
 
-	printk(KERN_INFO "Ardin: update_watermark");
 	if (!hw->sip)
 		return 0;
 
@@ -238,8 +232,6 @@ static int st_lsm6dsx_reset_hw_ts(struct st_lsm6dsx_hw *hw)
 {
 	struct st_lsm6dsx_sensor *sensor;
 	int i, err;
-
-	printk(KERN_INFO "Ardin: reset_hw_ts");
 	/* reset hw ts counter */
 	err = regmap_write(hw->regmap, ST_LSM6DSX_REG_TS_RESET_ADDR,
 			   ST_LSM6DSX_TS_RESET_VAL);
@@ -267,7 +259,6 @@ static inline int st_lsm6dsx_read_block(struct st_lsm6dsx_hw *hw, u8 *data,
 	unsigned int word_len, read_len = 0;
 	int err;
 
-	printk(KERN_INFO "Ardin: read_block");
 	while (read_len < data_len) {
 		word_len = min_t(unsigned int, data_len - read_len,
 				 ST_LSM6DSX_MAX_WORD_LEN);
@@ -303,7 +294,6 @@ static int st_lsm6dsx_read_fifo(struct st_lsm6dsx_hw *hw)
 	__le16 fifo_status;
 	s64 ts = 0;
 	int i;
-	printk(KERN_INFO "Ardin: read_fifo");
 	err = regmap_bulk_read(hw->regmap,
 			       hw->settings->fifo_ops.fifo_diff.addr,
 			       &fifo_status, sizeof(fifo_status));
@@ -398,11 +388,11 @@ static int st_lsm6dsx_read_fifo(struct st_lsm6dsx_hw *hw)
 					acc_buff, acc_sensor->ts_ref + ts);
 					
 			//printk(KERN_INFO "acc_buff: %x\n",(unsigned int)acc_buff);
-			print_hex_dump_bytes("Ardin:",DUMP_PREFIX_NONE,acc_buff,ST_LSM6DSX_IIO_BUFF_SIZE);
+			print_hex_dump_bytes(" ",DUMP_PREFIX_NONE,acc_buff,ST_LSM6DSX_IIO_BUFF_SIZE);
 			
 			for(i=0;i<ST_LSM6DSX_IIO_BUFF_SIZE;i++)
 			{
-				printk(KERN_INFO "Ardin: %x",acc_buff[i]);
+				printk(KERN_INFO "  %x",acc_buff[i]);
 			}
 		}
 	}
@@ -421,7 +411,6 @@ static int st_lsm6dsx_read_fifo(struct st_lsm6dsx_hw *hw)
 int st_lsm6dsx_flush_fifo(struct st_lsm6dsx_hw *hw)
 {
 	int err;
-	printk(KERN_INFO "Ardin: flush_fifo");
 
 	mutex_lock(&hw->fifo_lock);
 
@@ -438,7 +427,6 @@ static int st_lsm6dsx_update_fifo(struct iio_dev *iio_dev, bool enable)
 	struct st_lsm6dsx_sensor *sensor = iio_priv(iio_dev);
 	struct st_lsm6dsx_hw *hw = sensor->hw;
 	int err;
-	printk(KERN_INFO "Ardin: update_fifo");
 
 	mutex_lock(&hw->conf_lock);
 
@@ -488,7 +476,6 @@ out:
 static irqreturn_t st_lsm6dsx_handler_irq(int irq, void *private)
 {
 	struct st_lsm6dsx_hw *hw = private;
-	printk(KERN_INFO "Ardin: handler_irq");
 
 	return hw->sip > 0 ? IRQ_WAKE_THREAD : IRQ_NONE;
 }
@@ -498,7 +485,6 @@ static irqreturn_t st_lsm6dsx_handler_thread(int irq, void *private)
 	struct st_lsm6dsx_hw *hw = private;
 	int count;
 
-	printk(KERN_INFO "Ardin: handler_thread");
 	mutex_lock(&hw->fifo_lock);
 	count = st_lsm6dsx_read_fifo(hw);
 	mutex_unlock(&hw->fifo_lock);
@@ -508,13 +494,11 @@ static irqreturn_t st_lsm6dsx_handler_thread(int irq, void *private)
 
 static int st_lsm6dsx_buffer_preenable(struct iio_dev *iio_dev)
 {
-	printk(KERN_INFO "Ardin: buffer_preenable");
 	return st_lsm6dsx_update_fifo(iio_dev, true);
 }
 
 static int st_lsm6dsx_buffer_postdisable(struct iio_dev *iio_dev)
 {
-	printk(KERN_INFO "Ardin: bugger_postdisable");
 	return st_lsm6dsx_update_fifo(iio_dev, false);
 }
 
@@ -532,7 +516,6 @@ int st_lsm6dsx_fifo_setup(struct st_lsm6dsx_hw *hw)
 	bool irq_active_low;
 	int i, err;
 
-	printk(KERN_INFO "Ardin: fifo_setup");
 	irq_type = irqd_get_trigger_type(irq_get_irq_data(hw->irq));
 
 	switch (irq_type) {

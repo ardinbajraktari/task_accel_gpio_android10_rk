@@ -192,10 +192,21 @@
 	};
 };
 
+
 &i2c4 {
 	status = "okay";
 	i2c-scl-rising-time-ns = <600>;
 	i2c-scl-falling-time-ns = <20>;
+
+	lsm6ds3@6a {
+		compatible = "st,lsm6ds3";
+		reg = <0x6a>;
+		gpio,led1 = <&gpio2 3 0x00>;
+		gpio,led2 = <&gpio2 10 0x00>;
+		gpio,led3 = <&gpio2 6 0x00>;
+		gpio,led4 = <&gpio2 5 0x00>;
+	};
+
 
 	mpu6500@68 {
 		status = "disabled";
