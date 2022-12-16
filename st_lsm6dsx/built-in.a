@@ -1,0 +1,10 @@
+!<thin>
+//                                              76        `
+st_lsm6dsx_core.o/
+st_lsm6dsx_buffer.o/
+st_lsm6dsx_i2c.o/
+st_lsm6dsx_spi.o/
+/0              0           0     0     644     229552    `
+/19             0           0     0     644     156280    `
+/40             0           0     0     644     119464    `
+/58             0           0     0     644     171728    `
